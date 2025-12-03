@@ -50,7 +50,7 @@ jobs:
           actions: 'create-comment'
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            Hi @${{ context.actor }}, thanks for opening this issue! 🤖
+            Hi @${{ github.actor }}, thanks for opening this issue! 🤖
             
             I have automatically assigned this to our admin @PoojasPatel013 for review.
             
