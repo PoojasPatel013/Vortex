@@ -1,26 +1,28 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (needed for compilation of some python packages)
+RUN apt-get update && apt-get install -y \
+  gcc \
+  libpq-dev \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN pip install poetry
+# Install python dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir poetry && \
+  poetry config virtualenvs.create false
 
-# Copy configuration
-COPY pyproject.toml poetry.lock* ./
+# We need to install dependencies. 
+# Since we don't have poetry.lock yet, we rely on pyproject.toml
+# But for production build without lock, we might export requirements or just install via pip if we had requirements.txt
+# Here we will try to install the project itself which installs dependencies.
+COPY . .
+RUN pip install .
 
-# Install dependencies
-RUN poetry config virtualenvs.create false \
-  && poetry install --no-interaction --no-ansi
+# Install server dependencies explicitly if not in pyproject yet (we will add them)
+RUN pip install "fastapi[all]" uvicorn sqlmodel asyncpg psycopg2-binary
 
-# Copy source
-COPY vortex ./vortex
-COPY README.md ./
-
-# Expose API port
 EXPOSE 8000
 
-# Run API
 CMD ["uvicorn", "vortex.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

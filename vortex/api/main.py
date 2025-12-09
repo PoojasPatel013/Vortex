@@ -1,44 +1,120 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from vortex.api.routes import scan
-from vortex.core.database import create_db_and_tables
-from contextlib import asynccontextmanager
+import asyncio
 import os
+import json
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from sqlmodel import SQLModel, select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    create_db_and_tables()
-    yield
+from vortex.api.models import Scan, ScanCreate, ScanRead
+from vortex.core.engine import VortexEngine
+from vortex.core.modules.network import PortScanner
+from vortex.core.modules.http import HTTPScanner
+from vortex.core.modules.cloud import CloudScanner
+from vortex.core.modules.iot import IoTScanner
+from vortex.core.modules.graphql import GraphQLScanner
 
-app = FastAPI(title="Vortex API", description="Next-Generation Async Vulnerability Engine API", lifespan=lifespan)
+# Database Setup
+# Use SQLite for local development default, Postgres for Docker
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///vortex.db")
 
-# CORS (Allow all for dev, restrict in prod)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
-# Mount API routes
-app.include_router(scan.router, prefix="/api/scan", tags=["scan"])
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
 
-# Mount Static Files (Frontend)
-# We serve the 'dist' folder which contains the built React app
-static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui", "dist")
+async def get_session():
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
+        yield session
 
-if os.path.exists(static_dir):
-    # Mount assets specifically
-    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+app = FastAPI(title="Vortex API", version="0.1.0")
+
+@app.on_event("startup")
+async def on_startup():
+    await init_db()
+
+async def run_scan_task(scan_id: int):
+    # Create a new session for this task
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
+        scan = await session.get(Scan, scan_id)
+        if not scan:
+            return
+            
+        scan.status = "running"
+        session.add(scan)
+        await session.commit()
+        
+        try:
+            # Run Vortex Engine
+            v_engine = VortexEngine()
+            
+            # Configure Scanners (Based on Options)
+            opts = scan.options or {}
+            
+            v_engine.register_scanner(HTTPScanner())
+            
+            port_list = None
+            if opts.get("ports"):
+                # Handle comma separated string or list
+                p_arg = opts.get("ports")
+                if isinstance(p_arg, str):
+                    port_list = [int(p) for p in p_arg.split(",")]
+                elif isinstance(p_arg, list):
+                    port_list = p_arg
+            
+            v_engine.register_scanner(PortScanner(ports=port_list))
+            
+            if opts.get("cloud", False):
+                v_engine.register_scanner(CloudScanner())
+                
+            if opts.get("iot", False):
+                v_engine.register_scanner(IoTScanner())
+                
+            if opts.get("graphql", False):
+                v_engine.register_scanner(GraphQLScanner())
+
+            results = await v_engine.scan_target(scan.target)
+            
+            scan.results = results
+            scan.status = "completed"
+            
+        except Exception as e:
+            scan.status = "failed"
+            scan.results = {"error": str(e)}
+            
+        session.add(scan)
+        await session.commit()
+
+@app.post("/scans", response_model=ScanRead)
+async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, session: AsyncSession = Depends(get_session)):
+    scan = Scan(
+        target=scan_in.target,
+        scan_type=scan_in.scan_type,
+        options=scan_in.options,
+        status="pending"
+    )
+    session.add(scan)
+    await session.commit()
+    await session.refresh(scan)
     
-    # Catch-all for SPA routing (serve index.html for any other route)
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        return FileResponse(os.path.join(static_dir, "index.html"))
-else:
-    # Fallback for dev mode if dist doesn't exist yet
-    @app.get("/")
-    async def root():
-        return {"message": "Vortex API is running. Frontend not found (run 'npm run build' in vortex/ui)."}
+    background_tasks.add_task(run_scan_task, scan.id)
+    return scan
+
+@app.get("/scans", response_model=List[ScanRead])
+async def list_scans(offset: int = 0, limit: int = 100, session: AsyncSession = Depends(get_session)):
+    result = await session.execute(select(Scan).offset(offset).limit(limit))
+    scans = result.scalars().all()
+    return scans
+
+@app.get("/scans/{scan_id}", response_model=ScanRead)
+async def read_scan(scan_id: int, session: AsyncSession = Depends(get_session)):
+    scan = await session.get(Scan, scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return scan

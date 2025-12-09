@@ -1,6 +1,7 @@
 import asyncio
 import typer
 import json
+import uvicorn
 from typing import Optional
 from vortex.core.engine import VortexEngine
 from vortex.core.modules.network import PortScanner
@@ -19,6 +20,17 @@ def version():
     Show version.
     """
     print("Vortex v0.1.0")
+
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", help="Host to bind to"),
+    port: int = typer.Option(8000, help="Port to bind to")
+):
+    """
+    Start the API server.
+    """
+    print(f"Starting Vortex API on {host}:{port}")
+    uvicorn.run("vortex.api.main:app", host=host, port=port, reload=True)
 
 @app.command()
 def scan(
