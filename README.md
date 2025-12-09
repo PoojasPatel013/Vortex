@@ -80,22 +80,20 @@ Vortex extends the capabilities of traditional scanners by incorporating modern 
 ### 🌐 Module A: Async Network & Web Scanner
 
   * **Port Scanning:** Non-blocking TCP connect scanner.
-  * **HTTP Analysis:** Async header analysis, SSL certificate validation, and tech stack fingerprinting.
-  * **Innovation:** Uses a "producer-consumer" pattern where one coroutine finds open ports and instantly queues them for the service identification coroutine, minimizing idle time.
+  * **HTTP Analysis:** Async header analysis and basic tech stack fingerprinting.
+  * **Architecture:** Utilizes `asyncio.gather` for high-concurrency execution, allowing thousands of checks to be performed in parallel without blocking.
 
-### ☁️ Module B: Cloud Infrastructure Scanner
+### ☁️ Module B: Standalone Cloud Infrastructure Scanner
 
-  * **AWS Misconfiguration:** Uses `aiobotocore` (Async AWS SDK) to check for:
-      * Public S3 Buckets.
-      * Security Groups allowing `0.0.0.0/0` on sensitive ports (SSH/RDP).
-  * **Kubernetes Auditing:** Checks for exposed API Servers and unauthenticated Kubelet endpoints.
-  * **Why this matters:** Shifts focus from "Server Vulnerabilities" to "Infrastructure Configuration," a key requirement for modern DevSecOps.
+  * **Public S3 Buckets:** Checks for exposed S3 buckets associated with the target name using standard HTTP requests.
+  * **No Credentials Required:** Completely standalone implementation that does not require AWS keys or SDKs.
+  * **Why this matters:** Quickly identifies low-hanging fruit and public data leaks without complex setup.
 
-### 📡 Module C: IoT Protocol Fuzzer
+### 📡 Module C: Standalone IoT Protocol Scanner
 
-  * **MQTT & CoAP Support:** Specialized modules to connect to IoT message brokers.
-  * **Checks:** Anonymous login detection, wildcard subscription data leakage.
-  * **Implementation:** Custom-written async protocol handlers for lightweight IoT interaction.
+  * **MQTT Support:** specialized checks for the MQTT protocol (Port 1883).
+  * **Anonymous Access:** Detects brokers that allow connections without authentication.
+  * **Lightweight:** Uses `gmqtt` for efficient, non-blocking protocol interaction.
 
 -----
 
