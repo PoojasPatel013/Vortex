@@ -29,7 +29,10 @@
                     <span class="icon">⚡</span> Dashboard
                 </a>
                 <a href="#" class="nav-item" onclick="switchView('history')">
-                    <span class="icon">📜</span> History
+                    <span class="icon">📜</span> <span>Scan History</span>
+                </a>
+                <a href="#" class="nav-item" onclick="switchView('settings')">
+                    <span class="icon">⚙️</span> <span>Settings</span>
                 </a>
             </nav>
 
@@ -134,6 +137,36 @@
                         <!-- Populated by JS -->
                         <div class="empty-state">No active scans running...</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="view-settings" class="content-view" style="display: none;">
+                <h2>User Profile & Settings</h2>
+                <div class="card" style="margin-top:1rem; padding:2rem;">
+                    <form onsubmit="saveSettings(event)">
+                        <h3 style="margin-bottom:1rem; color:var(--accent-primary);">User Profile</h3>
+                        <div class="input-wrapper">
+                            <input type="text" id="setting_username" placeholder="Your Name (Pentester)"
+                                style="padding:0.8rem; background:#111; border:1px solid #333; color:white; width:100%;">
+                        </div>
+
+                        <h3 style="margin-top:2rem; margin-bottom:1rem; color:var(--accent-primary);">API Configuration
+                        </h3>
+                        <div class="input-wrapper">
+                            <label style="display:block; margin-bottom:0.5rem; color:#888;">Default DefectDojo
+                                URL</label>
+                            <input type="text" id="setting_dd_url" placeholder="http://defectdojo.local"
+                                style="padding:0.8rem; background:#111; border:1px solid #333; color:white; width:100%;">
+                        </div>
+                        <div class="input-wrapper" style="margin-top:1rem;">
+                            <label style="display:block; margin-bottom:0.5rem; color:#888;">Default API Key</label>
+                            <input type="password" id="setting_dd_key" placeholder="Token..."
+                                style="padding:0.8rem; background:#111; border:1px solid #333; color:white; width:100%;">
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="margin-top:2rem;">Save Settings</button>
+                    </form>
                 </div>
             </div>
 

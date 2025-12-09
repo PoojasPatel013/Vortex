@@ -190,9 +190,44 @@ function refreshHistory() {
     loadHistory();
 }
 
+// Settings Logic
+function saveSettings(e) {
+    e.preventDefault();
+    localStorage.setItem('vortex_username', document.getElementById('setting_username').value);
+    localStorage.setItem('vortex_dd_url', document.getElementById('setting_dd_url').value);
+    localStorage.setItem('vortex_dd_key', document.getElementById('setting_dd_key').value);
+    alert('Settings Saved!');
+    loadSettings(); // refresh form defaults
+}
+
+function loadSettings() {
+    const user = localStorage.getItem('vortex_username');
+    const ddUrl = localStorage.getItem('vortex_dd_url');
+    const ddKey = localStorage.getItem('vortex_dd_key');
+
+    if (document.getElementById('setting_username')) document.getElementById('setting_username').value = user || '';
+    if (document.getElementById('setting_dd_url')) document.getElementById('setting_dd_url').value = ddUrl || '';
+    if (document.getElementById('setting_dd_key')) document.getElementById('setting_dd_key').value = ddKey || '';
+
+    // Auto-fill New Scan Form
+    if (document.querySelector('input[name="defect_dojo_url"]')) {
+        if (ddUrl) document.querySelector('input[name="defect_dojo_url"]').value = ddUrl;
+        if (ddKey) document.querySelector('input[name="defect_dojo_key"]').value = ddKey;
+    }
+
+    // Update Sidebar User if exists
+    // (Optional: Add user profile display in sidebar later)
+}
+
 // Init
 window.onclick = function (event) {
     if (event.target == document.getElementById('resultsModal')) {
         closeModal();
     }
 }
+
+// Run on load
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    loadHistory();
+});
