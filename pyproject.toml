@@ -15,6 +15,7 @@ typer = "^0.9.0"
 aiobotocore = "^2.11.0"
 pydantic = "^2.6.0"
 python-multipart = "^0.0.9"
+gmqtt = "^0.6.11"
 # uvloop is excluded for Windows compatibility
 
 [tool.poetry.group.dev.dependencies]

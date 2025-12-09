@@ -1,0 +1,43 @@
+{
+  "PortScanner": {
+    "open_ports": [
+      22,
+      80,
+      443,
+      8080
+    ]
+  },
+  "HTTPScanner": {
+    "status_code": 200,
+    "headers": {
+      "Server": "nginx/1.28.0",
+      "Date": "Tue, 09 Dec 2025 06:45:14 GMT",
+      "Content-Type": "text/html",
+      "Last-Modified": "Mon, 31 Mar 2025 20:20:08 GMT",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "Etag": "W/\"67eaf8f8-1a51\"",
+      "Expires": "Thu, 11 Dec 2025 06:45:14 GMT",
+      "Cache-Control": "max-age=172800",
+      "Strict-Transport-Security": "max-age=31536000;includeSubDomains",
+      "X-Frame-Options": "DENY",
+      "Content-Security-Policy": "default-src 'none'; script-src 'self' 'unsafe-inline'; connect-src 'self' ws://test.mosquitto.org:8080/mqtt wss://test.mosquitto.org:8081/mqtt; img-src 'self' www.paypal.com www.paypalobjects.com; style-src 'self' 'unsafe-inline'; base-uri 'self';form-action 'self' https://www.paypal.com/donate; frame-src 'self' github.com;",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer-when-downgrade",
+      "Permissions-Policy": "geolocation=() midi=() notifications=() push=() sync-xhr=() microphone=() camera=() magnetometer=() gyroscope=() speaker=() vibrate=() fullscreen=(self) payment=()",
+      "Content-Encoding": "gzip"
+    },
+    "server": "nginx/1.28.0",
+    "tech_stack": []
+  },
+  "PentestEngine": {
+    "vulnerabilities": [
+      {
+        "type": "Information Leakage",
+        "severity": "Low",
+        "description": "Server header exposed: nginx/1.28.0",
+        "evidence": "nginx/1.28.0"
+      }
+    ]
+  }
+}

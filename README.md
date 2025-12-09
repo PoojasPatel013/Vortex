@@ -6,6 +6,41 @@
 
 Vortex is not just a command-line tool; it is a full-scope security platform featuring a modern **React-based dashboard**, **Cloud-Native scanning capabilities**, and seamless **CI/CD integration**. It bridges the gap between offensive red-teaming tools and defensive blue-team monitoring dashboards.
 
+## Quick Start & Usage
+
+### Installation
+```bash
+# Clone repository
+git clone https://github.com/PoojasPatel013/Vortex.git
+cd Vortex
+
+# Create virtual environment (Recommended)
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install .
+```
+
+### Running Scanners
+
+**Basic Scan (Network & Web):**
+```bash
+python run.py scan example.com
+```
+
+**Advanced Scan (Network, Web, Cloud & IoT):**
+```bash
+python run.py scan example.com --cloud --iot
+```
+
+**Options:**
+- `--cloud`: Enable Cloud Infrastructure Scanner (Public S3 Buckets)
+- `--iot`: Enable IoT Protocol Fuzzer (MQTT Anonymous Login)
+- `--auto-exploit`: Enable Pentest Engine (Auto-exploitation)
+- `--ports`: Specify custom ports (e.g. `--ports 80,8080`)
+
+
 ## 2. Core Architecture & Tech Stack
 
 The architecture is divided into three distinct layers: The Engine (Core), The Interface (API/UI), and The Integration Layer.
