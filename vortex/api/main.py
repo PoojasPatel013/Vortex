@@ -36,7 +36,20 @@ app = FastAPI(title="Vortex API", version="0.1.0")
 
 @app.on_event("startup")
 async def on_startup():
-    await init_db()
+    retries = 5
+    wait = 2
+    for i in range(retries):
+        try:
+            await init_db()
+            print("Database connected successfully.")
+            return
+        except Exception as e:
+            print(f"Database connection failed ({i+1}/{retries}): {e}")
+            if i < retries - 1:
+                await asyncio.sleep(wait)
+                wait *= 2  # Exponential backoff
+            else:
+                raise e
 
 async def run_scan_task(scan_id: int):
     # Create a new session for this task
