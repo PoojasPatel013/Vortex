@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "netra.fullname" . }}-worker
+  labels:
+    app: netra-worker
+spec:
+  # The drone grid logic
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      app: netra-worker
+  template:
+    metadata:
+      labels:
+        app: netra-worker
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          command: {{ .Values.worker.command | toJson }}
+          env:
+            {{- range $key, $val := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

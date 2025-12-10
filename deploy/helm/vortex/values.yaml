@@ -1,0 +1,45 @@
+# Default values for NETRA Enterprise.
+
+replicaCount: 1
+
+image:
+  repository: netra/core
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+worker:
+  replicaCount: 5
+  image:
+    repository: netra/core
+    tag: "latest"
+  command: ["python", "-m", "vortex.core.worker"]
+
+redis:
+  enabled: true
+  image: redis:alpine
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+resources: 
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+env:
+  DATABASE_URL: "postgresql+asyncpg://user:pass@postgres-service:5432/vortex"
+  REDIS_URL: "redis://redis-service:6379/0"

@@ -1,138 +1,71 @@
-# Project Title: Netra - Next-Generation Async Vulnerability Engine
+# NETRA - Enterprise Attack Surface Management (ASM)
 
-## 1. Executive Summary
+## 1. Product Vision
+NETRA is not just a scanner; it is a **Continuous Attack Surface Management (ASM)** platform designed for modern, cloud-native enterprises.
 
-**Netra** is a high-performance, modular vulnerability scanner built to address the limitations of legacy threaded scanners. Unlike traditional tools that rely on blocking I/O and heavy multiprocessing, Vortex utilizes a pure **AsyncIO event loop** architecture, allowing it to handle thousands of concurrent network connections with minimal resource overhead.
+While traditional scanners wait for you to define a target, NETRA continuously monitors your infrastructure to detect **Shadow IT**, **Zombie APIs**, and **Compliance Drifts** in real-time. Built on a scalable Kubernetes-native architecture, it scales from a single startup website to Fortune 500 infrastructure effortlessly.
 
-Vortex is not just a command-line tool; it is a full-scope security platform featuring a modern **React-based dashboard**, **Cloud-Native scanning capabilities**, and seamless **CI/CD integration**. It bridges the gap between offensive red-teaming tools and defensive blue-team monitoring dashboards.
+---
 
-## Quick Start & Usage
+## 2. The "NETRA Advantage" (Key Differentiators)
 
-### Installation
+### 🛡️ Feature A: Automated Asset Discovery (Reconnaissance)
+**The Problem**: Companies don't know what they own.
+**The Solution**: Input a company name, and NETRA performs deep recursive enumeration:
+*   **Certificate Transparency Logs**: Finds subdomains before they are even live.
+*   **Cloud Hunter**: Scans AWS, Azure, and GCP IP ranges for assets belonging to the organization.
+*   **Acquisition Mapping**: Links subsidiary companies to the main dashboard.
+
+### ⚖️ Feature B: GRC & Compliance Engine
+**The Problem**: Security teams speak "vulnerabilities"; C-Levels speak "risk."
+**The Solution**: Every finding is automatically mapped to major compliance frameworks.
+*   **Open S3 Bucket** → Mapped to **HIPAA §164.312(a)(1)**
+*   **Weak SSL Cipher** → Mapped to **PCI-DSS Req 4.1**
+**Benefit**: Generates audit-ready PDF reports instantly.
+
+### 🧟 Feature C: "Zombie" API Detection
+**The Problem**: Undocumented APIs are the easiest way to breach a company.
+**The Solution**: NETRA parses client-side JavaScript bundles to extract API routes that are not in the official documentation (Shadow APIs) and tests them for **Broken Object Level Authorization (BOLA)**.
+
+---
+
+## 3. Enterprise Architecture
+NETRA is designed to handle massive scale using a distributed microservices architecture.
+
+### The Stack
+*   **Orchestration**: Kubernetes (Helm Charts provided).
+*   **Queue System**: Redis Streams (Distributes millions of targets to workers).
+*   **Data Lake**: PostgreSQL (Persistent History) & AsyncIO Engine.
+*   **Identity**: Keycloak (OIDC/SAML integration for Enterprise SSO).
+
+### Deployment (Helm)
+```bash
+helm repo add netra https://charts.netra-security.io
+helm install netra-platform netra/enterprise --set replicas=50
+```
+
+### Local Development (Docker Compose)
+For testing and development, you can spin up the distributed cluster locally:
 ```bash
 # Clone repository
 git clone https://github.com/PoojasPatel013/Netra.git
 cd Vortex
 
-# Create virtual environment (Recommended)
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
-pip install .
+# Start Commander, Database, Redis, and Worker Drone
+docker-compose up --build
 ```
 
-### Running Scanners
+---
 
-**Basic Scan (Network & Web):**
-```bash
-python run.py scan example.com
-```
+## 4. Integration Ecosystem
+NETRA fits into the modern DevSecOps pipeline:
+*   **Ticket Systems**: 2-way sync with Jira and ServiceNow. (A bug found in NETRA automatically creates a Jira ticket; closing the Jira ticket triggers a re-scan in NETRA).
+*   **SIEM**: Forwards logs to Splunk or Datadog via webhooks.
+*   **CI/CD**: Blocks Jenkins/GitLab builds if critical API vulnerabilities are found.
 
-**Advanced Scan (Network, Web, Cloud & IoT):**
-```bash
-python run.py scan example.com --cloud --iot
-```
+---
 
-**Options:**
-- `--cloud`: Enable Cloud Infrastructure Scanner (Public S3 Buckets)
-- `--iot`: Enable IoT Protocol Fuzzer (MQTT Anonymous Login)
-- `--auto-exploit`: Enable Pentest Engine (Auto-exploitation)
-- `--ports`: Specify custom ports (e.g. `--ports 80,8080`)
-
-
-## 2. Core Architecture & Tech Stack
-
-The architecture is divided into three distinct layers: The Engine (Core), The Interface (API/UI), and The Integration Layer.
-
-### A. The Engine (Vortex Core)
-
-  * **Language:** Python 3.11+
-  * **Concurrency Model:** `asyncio` (Event Loop) + `uvloop` (Ultra-fast event loop replacement)
-  * **Network Library:** `aiohttp` (Async HTTP), `asyncio.Protocol` (Raw TCP/UDP)
-  * **Why this stack?**
-      * Demonstrates mastery of non-blocking I/O.
-      * Reduces memory footprint compared to multi-threaded scanners (e.g., threading 1000 connections vs. awaiting 1000 coroutines).
-      * Enables "massive scale" scanning (subnet/ASN level) on consumer hardware.
-
-### B. The Interface (API & Dashboard)
-
-  * **Backend API:** FastAPI (Asynchronous Python web framework)
-  * **Frontend:** React.js + Tailwind CSS + Recharts (for data visualization)
-  * **Communication:** REST API & WebSockets (for real-time scan progress updates)
-  * **Database:** PostgreSQL (for persistent scan history) or Redis (for high-speed job queues).
-  * **Why this stack?**
-      * Decouples the scanning engine from the user interface.
-      * Allows for "Headless" operation (API mode) or "Interactive" operation (GUI mode).
-
-### C. The Integration Layer (DevOps)
-
-  * **Containerization:** Docker & Docker Compose
-  * **CI/CD:** GitHub Actions (Custom Action wrapper)
-  * **Notification:** Webhooks (Slack/Discord integration)
-
------
-
-## 3. Key Features & Modules
-
-Netra extends the capabilities of traditional scanners by incorporating modern infrastructure targets.
-
-### 🌐 Module A: Async Network & Web Scanner
-
-  * **Port Scanning:** Non-blocking TCP connect scanner.
-  * **HTTP Analysis:** Async header analysis and basic tech stack fingerprinting.
-  * **Architecture:** Utilises `asyncio.gather` for high-concurrency execution, allowing thousands of checks to be performed in parallel without blocking.
-
-### ☁️ Module B: Standalone Cloud Infrastructure Scanner
-
-  * **Public S3 Buckets:** Checks for exposed S3 buckets associated with the target name using standard HTTP requests.
-  * **No Credentials Required:** Completely standalone implementation that does not require AWS keys or SDKs.
-  * **Why this matters:** Quickly identifies low-hanging fruit and public data leaks without complex setup.
-
-### 📡 Module C: Standalone IoT Protocol Scanner
-
-  * **MQTT Support:** specialised checks for the MQTT protocol (Port 1883).
-  * **Anonymous Access:** Detects brokers that allow connections without authentication.
-  * **Lightweight:** Uses `gmqtt` for efficient, non-blocking protocol interaction.
-
------
-
-## 4. The "Vajra UI" Dashboard
-
-A standalone web interface designed for Blue Teams and Management to visualise security posture.
-
-  * **Live Attack Surface Map:** A force-directed graph (D3.js) showing the relationship between domains, subdomains, and open ports.
-  * **Real-Time Progress:** WebSocket connection streams scan logs directly to the browser console window.
-  * **Diff-View:** A "Time Machine" feature that compares Scan A (Last Week) vs. Scan B (Today) to highlight *newly opened* ports or *new* misconfigurations.
-
------
-
-## 5. Deployment & Automation Strategy
-
-To prove the "Shift Left" capability, Vortex includes a native CI/CD wrapper.
-
-### GitHub Action Integration
-
-  * **Repository:** `vortex-action`
-  * **Usage:**
-    ```yaml
-    - name: Run Vortex Security Scan
-      uses: your-repo/vortex-action@v1
-      with:
-        target: ${{ secrets.STAGING_URL }}
-        fail-on-severity: high
-    ```
-  * **Behavior:** The action pulls the Docker container, runs a scan against the staging environment, parses the JSON output, and fails the build pipeline if critical vulnerabilities are found.
-
-### ChatOps (Slack/Discord)
-
-  * **Bot Integration:** A listener bot that accepts commands like `/vortex scan target.com`.
-  * **Reporting:** Upon completion, the bot posts a PDF summary to the channel and links to the full dashboard report.
-
------
-
-## 6. Roadmap & Future Innovations
-
-  * **AI False Positive Reduction:** Implementation of an OpenAI API post-processor to analyze raw HTTP responses and assign a "Confidence Score" to vulnerabilities.
-  * **Distributed Scanning:** Using Redis Pub/Sub to coordinate multiple Vortex nodes scanning different IP ranges simultaneously.
-
+## 5. Roadmap: The Path to Series A
+*   **Q1: AI-Powered Remediation**: Using LLMs to not just find the bug, but generate the specific code patch to fix it (e.g., "Here is the Nginx config to fix your missing security headers").
+*   **Q2: Agentless Cloud Security**: Direct integration with AWS IAM roles to scan internal VPCs without deploying scanners.
+*   **Q3: SaaS Multi-Tenancy**: Re-architecting for a SaaS model where multiple companies share the same infrastructure with strict data isolation.
