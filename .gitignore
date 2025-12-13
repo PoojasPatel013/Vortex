@@ -32,12 +32,15 @@ venv.bak/
 
 # Node.js / React
 node_modules/
-/vortex/ui/node_modules/
-/vortex/ui/dist/
+/netra/ui/node_modules/
+/netra/ui/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+/netra/ui/.pnpm-lock.yaml
+/netra/ui/package-lock.json
+/netra/ui/yarn.lock
 
 # Database
 *.db
